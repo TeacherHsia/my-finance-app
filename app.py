@@ -3,8 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+# 設定網頁標題與樣式
 st.set_page_config(page_title="頂級財富傳承精算系統", layout="wide", initial_sidebar_state="expanded")
 
+# --- 皇家私人銀行高階視覺風格注入 (CSS) ---
 st.markdown("""
     <style>
     @import url('https://googleapis.com');
@@ -59,7 +61,11 @@ CITY_TAX_RATES = {
 st.sidebar.markdown("<h2 style='color:#e0a96d; font-size:20px;'>👤 客戶基本參數設定</h2>", unsafe_allow_html=True)
 client_name = st.sidebar.text_input("客戶姓名/專案編號", value="尊榮 VIP 客戶")
 current_age = st.sidebar.number_input("當前年齡", min_value=1, max_value=119, value=40)
-retirement_age = st.sidebar.number_input("預計退休年齡", min_value=current_age, max_value=120, value=60)
+
+# 動態調整退休年齡預設值，解決年齡大於60歲時的崩潰問題
+default_retirement = max(current_age, 60)
+retirement_age = st.sidebar.number_input("預計退休年齡", min_value=current_age, max_value=120, value=int(default_retirement))
+
 initial_cash = st.sidebar.number_input("現有流動現金/總存款 (元)", value=5000000)
 annual_work_income = st.sidebar.number_input("目前年工作收入 (元)", value=1200000)
 annual_expenses = st.sidebar.number_input("目前年生活總開銷 (元)", value=600000)
@@ -151,14 +157,21 @@ base_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund
 for age in range(current_age, 121):
     total_annual_dividend = base_annual_dividend
     if total_leverage_cash > 0:
-        avg_rate = (base_annual_dividend / base_fund_market_value) if base_fund_market_value > 0 else 0.06
+        if base_fund_market_value > 0:
+            avg_rate = base_annual_dividend / base_fund_market_value
+        else:
+            avg_rate = 0.06
         total_annual_dividend += total_leverage_cash * avg_rate
         
     basic_tax = 0.0
     if total_annual_dividend >= 1000000.0 and total_annual_dividend > 7500000.0:
         basic_tax = (total_annual_dividend - 7500000.0) * 0.20
         
-    work_inc = annual_work_income if age < retirement_age else 0
+    if age < retirement_age:
+        work_inc = annual_work_income
+    else:
+        work_inc = 0
+    
     net_cash_flow = work_inc + total_annual_dividend - annual_expenses - annual_loan_interest - basic_tax
     cash_pool += net_cash_flow
     
