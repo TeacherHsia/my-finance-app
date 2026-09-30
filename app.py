@@ -81,7 +81,7 @@ with tab1:
     # --- 1. 不動產動態新增區塊 ---
     st.markdown("<h3 style='color:#e0a96d;'>🏠 不動產活化配置清單</h3>", unsafe_allow_html=True)
     if 're_count' not in st.session_state:
-        st.session_state.re_count = 1  # 預設一筆
+        st.session_state.re_count = 1
         
     real_estate_list = []
     for i in range(st.session_state.re_count):
@@ -151,7 +151,7 @@ with tab1:
         st.session_state.fund_count += 1
         st.rerun()
 
-# --- 核心大數據精算核心 (支援多筆動態運算) ---
+# --- 核心大數據精算核心 ---
 total_re_market = sum([re['market_value'] for re in real_estate_list])
 total_re_tax = sum([re['market_value'] * CITY_TAX_RATES[re['city']] for re in real_estate_list])
 
@@ -173,16 +173,11 @@ max_estate_tax = 0
 max_estate_tax_age = current_age
 
 for age in range(current_age, 121):
-    # 動態計算所有基金與增貸投入的總配息
-    total_fund_pool = base_fund_market_value + total_leverage_cash
+    # 動態計算配息，徹底移除多層 else 判斷
     total_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund_list])
-    if total_leverage_cash > 0 and base_fund_market_value > 0:
-        avg_div_rate = total_annual_dividend / base_fund_market_value
-        total_annual_dividend += total_leverage_cash * avg_div_rate
-    elif total_leverage_cash > 0:
-        total_annual_dividend += total_leverage_cash * 0.06
-    else:
-        total_annual_dividend += 0
+    if total_leverage_cash > 0:
+        avg_rate = (total_annual_dividend / base_fund_market_value) if base_fund_market_value > 0 else 0.06
+        total_annual_dividend += total_leverage_cash * avg_rate
         
     basic_tax = 0
     if total_annual_dividend >= 1000000 and total_annual_dividend > 7500000:
@@ -226,4 +221,8 @@ with tab2:
     with col_a:
         if bankruptcy_age:
             st.markdown(f"<span style='color:#ff4b4b;'>⚠️ <b>現金流安全警訊</b>：資產池預計於 <b>{bankruptcy_age} 歲</b> 現金流告急。</span>", unsafe_allow_html=True)
+        else:
+            st.markdown("<span style='color:#00cc66;'>✅ <b>終身現金流檢測</b>：現金流安全無虞，資產能完美延續至120歲。</span>", unsafe_allow_html=True)
+        if total_annual_dividend >= 7500000:
+            st.markdown("<br><span style='color:#ffaa00;'>⚠️ <b>最低稅負制觸發</b>：年度海外總配息高於 750 萬，將產生 20% 基本所得稅額風險。</span>", unsafe_allow_html=True)
         else:
