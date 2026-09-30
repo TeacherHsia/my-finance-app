@@ -84,21 +84,18 @@ with tab1:
         
     real_estate_list = []
     for i in range(st.session_state.re_count):
-        st.markdown(f"<div class='wealth-card'>", unsafe_allow_html=True)
-        col_re1, col_re2, col_re3 = st.columns(3)
-        with col_re1:
-            re_name = st.text_input(f"物業 {i+1} 名稱 / 地段描述", value="信義路大樓" if i==0 else f"自訂不動產物業 {i+1}", key=f"re_name_{i}")
-            re_market = st.number_input(f"估計市值 (元)", value=50000000 if i==0 else 10000000, key=f"re_market_{i}")
-        with col_re2:
-            re_city = st.selectbox(f"所在縣市", list(CITY_TAX_RATES.keys()), index=0 if i==0 else 6, key=f"re_city_{i}")
-            re_is_lev = st.checkbox(f"啟動理財增貸套利", value=True if i==0 else False, key=f"re_lev_{i}")
-        with col_re3:
-            if re_is_lev:
-                re_ratio = st.slider(f"增貸成數", 0.0, 0.8, 0.7, key=f"re_ratio_{i}")
-                re_rate = st.number_input(f"增貸年利率 (%)", value=2.15, key=f"re_rate_{i}") / 100
-            else:
-                re_ratio = 0.0
-                re_rate = 0.0
+        st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
+        re_name = st.text_input(f"物業 {i+1} 名稱 / 地段描述", value="信義路大樓" if i==0 else f"自訂不動產物業 {i+1}", key=f"re_name_{i}")
+        re_market = st.number_input(f"估計市值 (元)", value=50000000 if i==0 else 10000000, key=f"re_market_{i}")
+        re_city = st.selectbox(f"所在縣市", list(CITY_TAX_RATES.keys()), index=0 if i==0 else 6, key=f"re_city_{i}")
+        re_is_lev = st.checkbox(f"啟動理財增貸套利", value=True if i==0 else False, key=f"re_lev_{i}")
+        
+        re_ratio = 0.0
+        re_rate = 0.0
+        if re_is_lev:
+            re_ratio = st.slider(f"增貸成數", 0.0, 0.8, 0.7, key=f"re_ratio_{i}")
+            re_rate = st.number_input(f"增貸年利率 (%)", value=2.15, key=f"re_rate_{i}") / 100
+            
         st.markdown("</div>", unsafe_allow_html=True)
         real_estate_list.append({"name": re_name, "market_value": re_market, "city": re_city, "is_leverage": re_is_lev, "leverage_ratio": re_ratio, "loan_rate": re_rate})
         
@@ -113,13 +110,9 @@ with tab1:
     stock_list = []
     for i in range(st.session_state.stock_count):
         st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
-        col_st1, col_st2, col_st3 = st.columns(3)
-        with col_st1:
-            st_name = st.text_input(f"股票名稱 / 代號", value="台積電 2330" if i==0 else f"自訂股票 {i+1}", key=f"st_name_{i}")
-        with col_st2:
-            st_shares = st.number_input(f"持有總股數", value=10000 if i==0 else 1000, key=f"st_shares_{i}")
-        with col_st3:
-            st_now = st.number_input(f"昨日收盤價 (元)", value=950 if i==0 else 100, key=f"st_now_{i}")
+        st_name = st.text_input(f"股票名稱 / 代號", value="台積電 2330" if i==0 else f"自訂股票 {i+1}", key=f"st_name_{i}")
+        st_shares = st.number_input(f"持有總股數", value=10000 if i==0 else 1000, key=f"st_shares_{i}")
+        st_now = st.number_input(f"昨日收盤價 (元)", value=950 if i==0 else 100, key=f"st_now_{i}")
         st.markdown("</div>", unsafe_allow_html=True)
         stock_list.append({"name": st_name, "shares": st_shares, "price": st_now})
         
@@ -134,13 +127,9 @@ with tab1:
     fund_list = []
     for i in range(st.session_state.fund_count):
         st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
-        col_fd1, col_fd2, col_fd3 = st.columns(3)
-        with col_fd1:
-            fd_name = st.text_input(f"基金或配息型項目名稱", value="全球高收益債券基金" if i==0 else f"自訂配息項目 {i+1}", key=f"fd_name_{i}")
-        with col_fd2:
-            fd_value = st.number_input(f"目前持有總市值 (元)", value=2040000 if i==0 else 500000, key=f"fd_value_{i}")
-        with col_fd3:
-            fd_rate = st.number_input(f"預估年化配息率 (%)", value=7.5 if i==0 else 5.0, key=f"fd_rate_{i}") / 100
+        fd_name = st.text_input(f"基金或配息型項目名稱", value="全球高收益債券基金" if i==0 else f"自訂配息項目 {i+1}", key=f"fd_name_{i}")
+        fd_value = st.number_input(f"目前持有總市值 (元)", value=2040000 if i==0 else 500000, key=f"fd_value_{i}")
+        fd_rate = st.number_input(f"預估年化配息率 (%)", value=7.5 if i==0 else 5.0, key=f"fd_rate_{i}") / 100
         st.markdown("</div>", unsafe_allow_html=True)
         fund_list.append({"name": fd_name, "market_value": fd_value, "dividend_rate": fd_rate})
         
@@ -227,16 +216,22 @@ with tab2:
     st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#e0a96d; margin-top:0;'>💡 家族財富傳承精算建議</h4>", unsafe_allow_html=True)
     
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if bankruptcy_age != -1:
-            st.warning(f"⚠️ 現金流安全警訊：資產池預計於 {bankruptcy_age} 歲 現金流告急。")
-        else:
-            st.success("✅ 終身現金流檢測：現金流安全無虞，資產能完美延續至120歲。")
-            
-        if total_annual_dividend >= 7500000:
-            st.warning("⚠️ 最低稅負制觸發：年度海外總配息高於 750 萬，將產生 20% 基本所得稅額風險。")
-        else:
-            st.success("✅ 租稅合規檢測：年度海外總配息未達補稅紅線。")
-            
-    with col_b:
+    if bankruptcy_age != -1:
+        st.error(f"⚠️ 現金流安全警訊：資產池預計於 {bankruptcy_age} 歲 現金流告急。")
+    if bankruptcy_age == -1:
+        st.success("✅ 終身現金流檢測：現金流安全無虞，資產能完美延續至120歲。")
+        
+    if total_annual_dividend >= 7500000:
+        st.warning("⚠️ 最低稅負制觸發：年度海外總配息高於 750 萬，將產生 20% 基本所得稅額風險。")
+    if total_annual_dividend < 7500000:
+        st.success("✅ 租稅合規檢測：年度海外總配息未達補稅紅線。")
+        
+    st.info(f"🔮 身故傳承風險預警：預計在 {max_estate_tax_age} 歲時達到身故遺產稅高峰，預估約為新台幣 {max_estate_tax:,.0f} 元。")
+    st.caption("修訂建議：利用人身保險之免稅特性規劃預留稅源，避免子女因缺乏現金而面臨物業繼承困境。")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # 圖表
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df["年齡"], y=df["總資產市值"], name="總資產市值 (含自訂物業市價)", line=dict(color='#e0a96d', width=3.5)))
+    fig.add_trace(go.Scatter(x=df["年齡"], y=df["預估遺產稅"], name="預估身故遺產稅 (法定現值)", line=dict(color='#ff4b4b', width=2.5, dash='dash')))
+    fig.update_layout(
