@@ -4,84 +4,168 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # 設定網頁標題與樣式
-st.set_page_config(page_title="高階財務傳承精算報告", layout="wide")
+st.set_page_config(page_title="頂級財富傳承精算系統", layout="wide", initial_sidebar_state="expanded")
 
-# CSS 樣式：優化列印排版（列印時隱藏側邊欄與 Streamlit 雜項）
+# --- 皇家私人銀行高階視覺風格注入 (CSS) ---
 st.markdown("""
     <style>
+    @import url('https://googleapis.com');
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Noto Sans TC', sans-serif;
+        background-color: #0d1b2a !important;
+        color: #e0e1dd !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #1b263b !important;
+        border-right: 2px solid #e0a96d !important;
+    }
+    .wealth-card {
+        background: linear-gradient(145deg, #1b263b, #0d1b2a);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(224, 169, 109, 0.3);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        margin-bottom: 15px;
+    }
+    .brand-header {
+        background: linear-gradient(90deg, #112233, #1b263b);
+        padding: 30px;
+        border-radius: 16px;
+        border-left: 6px solid #e0a96d;
+        margin-bottom: 35px;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        color: #e0a96d !important;
+        border-bottom-color: #e0a96d !important;
+    }
     @media print {
         div[data-testid="stSidebar"] { display: none !important; }
         header { display: none !important; }
         footer { display: none !important; }
         div.stButton { display: none !important; }
         .stTabs { display: none !important; }
-        #MainMenu { visibility: hidden; }
+        .brand-header { border-left: 10px solid #000 !important; background: #fff !important; color: #000 !important;}
+        body { background-color: #ffffff !important; color: #000000 !important; }
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 高階財富管理：終身資產壓力測試與傳承精算系統")
-st.markdown("---")
+# 頂部品牌 Header
+st.markdown("""
+    <div class="brand-header">
+        <span style="font-size: 14px; letter-spacing: 2px; color: #e0a96d; font-weight:700;">FAMILY OFFICE & WEALTH MANAGEMENT</span>
+        <h1 style="margin: 5px 0 0 0; font-size: 32px; font-weight: 700; color: #ffffff; letter-spacing: 1px;">
+            🏛️ 輝煌家族辦公室 · 資產傳承壓力測試系統
+        </h1>
+        <p style="margin: 10px 0 0 0; color: #a5a5a5; font-size: 14px;">動態資產配置版：支援不限筆數自訂物業、股票與基金標的精算。</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # 縣市遺產稅推估率
 CITY_TAX_RATES = {
-    "台北市": 0.35, "新北市": 0.35,
-    "台中市": 0.28, "高雄市": 0.28, "桃園市": 0.28, "新竹市": 0.28,
-    "其他縣市": 0.22
+    "台北市": 0.35, "新北市": 0.35, "台中市": 0.28, "高雄市": 0.28, "桃園市": 0.28, "新竹市": 0.28, "其他縣市": 0.22
 }
 
-# 側邊欄：客戶基本資料
-st.sidebar.header("👤 客戶基本設定")
-client_name = st.sidebar.text_input("客戶姓名/編號", value="VIP 客戶")
+# 側邊欄：基本設定
+st.sidebar.markdown("<h2 style='color:#e0a96d; font-size:20px;'>👤 客戶基本參數設定</h2>", unsafe_allow_html=True)
+client_name = st.sidebar.text_input("客戶姓名/專案編號", value="尊榮 VIP 客戶")
 current_age = st.sidebar.number_input("當前年齡", min_value=1, max_value=119, value=40)
 retirement_age = st.sidebar.number_input("預計退休年齡", min_value=current_age, max_value=120, value=60)
-initial_cash = st.sidebar.number_input("現有現金/存款 (元)", value=5000000)
+initial_cash = st.sidebar.number_input("現有流動現金/總存款 (元)", value=5000000)
 annual_work_income = st.sidebar.number_input("目前年工作收入 (元)", value=1200000)
 annual_expenses = st.sidebar.number_input("目前年生活總開銷 (元)", value=600000)
 
-# 主畫面分頁
-tab1, tab2 = st.tabs(["🏠 房地產與投資配置", "🚀 執行精算報告"])
+tab1, tab2 = st.tabs(["🔒 自由配置動態資產清單", "🏆 執行終身資產精算簡報"])
 
 with tab1:
-    st.subheader("多筆房地產與增貸理財設定")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**房產 A 設定**")
-        re1_market = st.number_input("房產 A 目前市價 (元)", value=50000000)
-        re1_city = st.selectbox("房產 A 所在縣市", list(CITY_TAX_RATES.keys()), index=0)
-        re1_is_lev = st.checkbox("房產 A 啟動增貸套利", value=True)
-        re1_ratio = st.slider("房產 A 增貸成數", 0.0, 0.8, 0.7)
-        re1_rate = st.number_input("房產 A 增貸年利率 (%)", value=2.15) / 100
-    with col2:
-        st.markdown("**房產 B 設定**")
-        re2_market = st.number_input("房產 B 目前市價 (元)", value=25000000)
-        re2_city = st.selectbox("房產 B 所在縣市", list(CITY_TAX_RATES.keys()), index=2)
-        re2_is_lev = st.checkbox("房產 B 啟動增貸套利", value=False)
+    # --- 1. 不動產動態新增區塊 ---
+    st.markdown("<h3 style='color:#e0a96d;'>🏠 不動產活化配置清單</h3>", unsafe_allow_html=True)
+    if 're_count' not in st.session_state:
+        st.session_state.re_count = 1  # 預設一筆
+        
+    real_estate_list = []
+    for i in range(st.session_state.re_count):
+        st.markdown(f"<div class='wealth-card'>", unsafe_allow_html=True)
+        col_re1, col_re2, col_re3 = st.columns([2, 2, 3])
+        with col_re1:
+            re_name = st.text_input(f"物業 {i+1} 名稱 / 地段描述", value="信義路大樓" if i==0 else f"自訂不動產物業 {i+1}", key=f"re_name_{i}")
+            re_market = st.number_input(f"估計市值 (元)", value=50000000 if i==0 else 10000000, key=f"re_market_{i}")
+        with col_re2:
+            re_city = st.selectbox(f"所在縣市", list(CITY_TAX_RATES.keys()), index=0 if i==0 else 6, key=f"re_city_{i}")
+            re_is_lev = st.checkbox(f"啟動理財增貸套利", value=True if i==0 else False, key=f"re_lev_{i}")
+        with col_re3:
+            if re_is_lev:
+                re_ratio = st.slider(f"增貸成數", 0.0, 0.8, 0.7, key=f"re_ratio_{i}")
+                re_rate = st.number_input(f"增貸年利率 (%)", value=2.15, key=f"re_rate_{i}") / 100
+            else:
+                re_ratio = 0.0
+                re_rate = 0.0
+        st.markdown("</div>", unsafe_allow_html=True)
+        real_estate_list.append({"name": re_name, "market_value": re_market, "city": re_city, "is_leverage": re_is_lev, "leverage_ratio": re_ratio, "loan_rate": re_rate})
+        
+    if st.button("➕ 新增一筆房地產物業"):
+        st.session_state.re_count += 1
+        st.状况 = "Rerun"
+        st.rerun()
 
-    st.markdown("---")
-    st.subheader("投資組合與即時市值推估")
-    col3, col4 = st.columns(2)
-    with col3:
-        st.markdown("**股票部位 (例如: 台積電 2330)**")
-        stock_shares = st.number_input("持有股數", value=10000)
-        stock_now = st.number_input("即時收盤價 (元)", value=950)
-    with col4:
-        st.markdown("**基金部位 (月配息債券)**")
-        fund_value = st.number_input("基金目前總現值 (元)", value=2040000)
-        fund_div_rate = st.number_input("預估年化配息率 (%)", value=7.5) / 100
+    # --- 2. 股票部位動態新增區塊 ---
+    st.markdown("<h3 style='color:#e0a96d;'>📈 上市股票動態資產清單</h3>", unsafe_allow_html=True)
+    if 'stock_count' not in st.session_state:
+        st.session_state.stock_count = 1
+        
+    stock_list = []
+    for i in range(st.session_state.stock_count):
+        st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
+        col_st1, col_st2, col_st3 = st.columns(3)
+        with col_st1:
+            st_name = st.text_input(f"股票名稱 / 代號", value="台積電 2330" if i==0 else f"自訂股票 {i+1}", key=f"st_name_{i}")
+        with col_st2:
+            st_shares = st.number_input(f"持有總股數", value=10000 if i==0 else 1000, key=f"st_shares_{i}")
+        with col_st3:
+            st_now = st.number_input(f"昨日收盤價 (元)", value=950 if i==0 else 100, key=f"st_now_{i}")
+        st.markdown("</div>", unsafe_allow_html=True)
+        stock_list.append({"name": st_name, "shares": st_shares, "price": st_now})
+        
+    if st.button("➕ 新增一筆股票標的"):
+        st.session_state.stock_count += 1
+        st.rerun()
 
-# 核心精算邏輯
-total_re_market = re1_market + re2_market
-total_re_tax = (re1_market * CITY_TAX_RATES[re1_city]) + (re2_market * CITY_TAX_RATES[re2_city])
+    # --- 3. 基金部位動態新增區塊 ---
+    st.markdown("<h3 style='color:#e0a96d;'>💎 海外配息基金動態清單</h3>", unsafe_allow_html=True)
+    if 'fund_count' not in st.session_state:
+        st.session_state.fund_count = 1
+        
+    fund_list = []
+    for i in range(st.session_state.fund_count):
+        st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
+        col_fd1, col_fd2, col_fd3 = st.columns(3)
+        with col_fd1:
+            fd_name = st.text_input(f"基金或配息型項目名稱", value="全球高收益債券基金" if i==0 else f"自訂配息項目 {i+1}", key=f"fd_name_{i}")
+        with col_fd2:
+            fd_value = st.number_input(f"目前持有總市值 (元)", value=2040000 if i==0 else 500000, key=f"fd_value_{i}")
+        with col_fd3:
+            fd_rate = st.number_input(f"預估年化配息率 (%)", value=7.5 if i==0 else 5.0, key=f"fd_rate_{i}") / 100
+        st.markdown("</div>", unsafe_allow_html=True)
+        fund_list.append({"name": fd_name, "market_value": fd_value, "dividend_rate": fd_rate})
+        
+    if st.button("➕ 新增一筆基金/配息項目"):
+        st.session_state.fund_count += 1
+        st.rerun()
+
+# --- 核心大數據精算核心 (支援多筆動態運算) ---
+total_re_market = sum([re['market_value'] for re in real_estate_list])
+total_re_tax = sum([re['market_value'] * CITY_TAX_RATES[re['city']] for re in real_estate_list])
 
 total_leverage_cash = 0
 annual_loan_interest = 0
-if re1_is_lev:
-    lev_amt = re1_market * re1_ratio
-    total_leverage_cash += lev_amt
-    annual_loan_interest += lev_amt * re1_rate
-    
-stock_market_value = stock_shares * stock_now
+for re in real_estate_list:
+    if re['is_leverage']:
+        lev_amt = re['market_value'] * re['leverage_ratio']
+        total_leverage_cash += lev_amt
+        annual_loan_interest += lev_amt * re['loan_rate']
+
+stock_market_value = sum([stk['shares'] * stk['price'] for stk in stock_list])
+base_fund_market_value = sum([f['market_value'] for f in fund_list])
 
 projection = []
 cash_pool = initial_cash + total_leverage_cash
@@ -90,14 +174,22 @@ max_estate_tax = 0
 max_estate_tax_age = current_age
 
 for age in range(current_age, 121):
-    annual_dividend = (fund_value + (total_leverage_cash if re1_is_lev else 0)) * fund_div_rate
-    
+    # 動態計算所有基金與增貸投入的總配息
+    total_fund_pool = base_fund_market_value + total_leverage_cash
+    # 這裡採用平均年化配息率或各筆基金權重加總計算
+    total_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund_list])
+    if total_leverage_cash > 0 and base_fund_market_value > 0:
+        avg_div_rate = total_annual_dividend / base_fund_market_value
+        total_annual_dividend += total_leverage_cash * avg_div_rate
+    elif total_leverage_cash > 0:
+        total_annual_dividend += total_leverage_cash * 0.06 # 若無基本基金，增貸預設以6%配息算
+        
     basic_tax = 0
-    if annual_dividend >= 1000000 and annual_dividend > 7500000:
-        basic_tax = (annual_dividend - 7500000) * 0.20
+    if total_annual_dividend >= 1000000 and total_annual_dividend > 7500000:
+        basic_tax = (total_annual_dividend - 7500000) * 0.20
         
     work_inc = annual_work_income if age < retirement_age else 0
-    net_cash_flow = work_inc + annual_dividend - annual_expenses - annual_loan_interest - basic_tax
+    net_cash_flow = work_inc + total_annual_dividend - annual_expenses - annual_loan_interest - basic_tax
     cash_pool += net_cash_flow
     
     if cash_pool < 0 and bankruptcy_age is None:
@@ -125,37 +217,13 @@ for age in range(current_age, 121):
 df = pd.DataFrame(projection)
 
 with tab2:
-    st.header(f"📜 {client_name} 專屬終身資產規劃簡報")
-    st.caption(f"報告產出日期：{datetime.date.today().strftime('%Y-%m-%d')} | 精算模擬終點：120歲")
+    st.markdown(f"<h2 style='color:#e0a96d;'>📜 {client_name} 專屬終身資產規劃報告</h2>", unsafe_allow_html=True)
+    st.caption(f"報告產出日期：{datetime.date.today().strftime('%Y-%m-%d')} | 精算模擬終點：120歲 | 輝煌家族辦公室尊榮製作")
     
-    # 專家建議區塊
-    st.subheader("💡 系統專家精算建議")
+    st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#e0a96d; margin-top:0;'>💡 家族財富傳承精算建議</h4>", unsafe_allow_html=True)
     col_a, col_b = st.columns(2)
     with col_a:
         if bankruptcy_age:
-            st.error(f"⚠️ **現金流警訊**：資產預計於 **{bankruptcy_age} 歲** 出現缺口，請調整退休開銷或提高投資回報率。")
+            st.markdown(f"<span style='color:#ff4b4b;'>⚠️ <b>現金流安全警訊</b>：資產池預計於 <b>{bankruptcy_age} 歲</b> 現金流告急。</span>", unsafe_allow_html=True)
         else:
-            st.success("✅ **現金流安全**：終身現金流安全無虞，流動性充足。")
-            
-        fund_total_annual = (fund_value + (total_leverage_cash if re1_is_lev else 0)) * fund_div_rate
-        if fund_total_annual >= 7500000:
-            st.warning("⚠️ **最低稅負制風險**：海外配息已達基本所得稅額免稅紅線，需注意年度補稅。")
-        else:
-            st.success("✅ **最低稅負制安全**：海外所得未達補稅門檻。")
-            
-    with col_b:
-        st.info(f"🔮 **最高遺產稅預警**：預計在 **{max_estate_tax_age} 歲** 時達到最高身故遺產稅，金額約為 **\${max_estate_tax:,.0f} 元**。建議提早規劃傳承工具（如人身保險預留稅源）。")
-
-    # 圖表
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df["年齡"], y=df["總資產市值"], name="總資產市值 (含房產市價)", line=dict(color='#1f77b4', width=3)))
-    fig.add_trace(go.Scatter(x=df["年齡"], y=df["預估遺產稅"], name="預估身故遺產稅 (法定現值計)", line=dict(color='#d62728', width=3, dash='dash')))
-    fig.update_layout(title="終身資產消長與身故遺產稅壓力測試", xaxis_title="年齡 (歲)", yaxis_title="新台幣 (元)", hovermode="x unified")
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # 資料表
-    st.subheader("📋 逐年精算數據明細")
-    st.dataframe(df.style.format({"總資產市值": "{:,.0f}", "預估遺產稅": "{:,.0f}", "淨現金流": "{:,.0f}"}), use_container_width=True)
-
-    st.markdown("---")
-    st.markdown("👉 **如何列印 / 匯出 PDF？**：請直接按下鍵盤的 **`Command (⌘) + P`**，在列印選項中選擇「另存為 PDF」即可。側邊欄與按鈕會自動被隱藏。")
