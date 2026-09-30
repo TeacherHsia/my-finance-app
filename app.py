@@ -78,7 +78,6 @@ annual_expenses = st.sidebar.number_input("目前年生活總開銷 (元)", valu
 tab1, tab2 = st.tabs(["🔒 自由配置動態資產清單", "🏆 執行終身資產精算簡報"])
 
 with tab1:
-    # --- 1. 不動產動態新增區塊 ---
     st.markdown("<h3 style='color:#e0a96d;'>🏠 不動產活化配置清單</h3>", unsafe_allow_html=True)
     if 're_count' not in st.session_state:
         st.session_state.re_count = 1
@@ -107,7 +106,6 @@ with tab1:
         st.session_state.re_count += 1
         st.rerun()
 
-    # --- 2. 股票部位動態新增區塊 ---
     st.markdown("<h3 style='color:#e0a96d;'>📈 上市股票動態資產清單</h3>", unsafe_allow_html=True)
     if 'stock_count' not in st.session_state:
         st.session_state.stock_count = 1
@@ -129,7 +127,6 @@ with tab1:
         st.session_state.stock_count += 1
         st.rerun()
 
-    # --- 3. 基金部位動態新增區塊 ---
     st.markdown("<h3 style='color:#e0a96d;'>💎 海外配息基金動態清單</h3>", unsafe_allow_html=True)
     if 'fund_count' not in st.session_state:
         st.session_state.fund_count = 1
@@ -168,35 +165,47 @@ base_fund_market_value = sum([f['market_value'] for f in fund_list])
 
 projection = []
 cash_pool = initial_cash + total_leverage_cash
-bankruptcy_age = None
-max_estate_tax = 0
+bankruptcy_age = -1
+max_estate_tax = 0.0
 max_estate_tax_age = current_age
 
+base_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund_list])
+
 for age in range(current_age, 121):
-    # 動態計算配息，徹底移除多層 else 判斷
-    total_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund_list])
+    total_annual_dividend = base_annual_dividend
     if total_leverage_cash > 0:
-        avg_rate = (total_annual_dividend / base_fund_market_value) if base_fund_market_value > 0 else 0.06
+        if base_fund_market_value > 0:
+            avg_rate = base_annual_dividend / base_fund_market_value
+        else:
+            avg_rate = 0.06
         total_annual_dividend += total_leverage_cash * avg_rate
         
-    basic_tax = 0
-    if total_annual_dividend >= 1000000 and total_annual_dividend > 7500000:
-        basic_tax = (total_annual_dividend - 7500000) * 0.20
+    basic_tax = 0.0
+    if total_annual_dividend >= 1000000.0 and total_annual_dividend > 7500000.0:
+        basic_tax = (total_annual_dividend - 7500000.0) * 0.20
         
-    work_inc = annual_work_income if age < retirement_age else 0
+    if age < retirement_age:
+        work_inc = annual_work_income
+    else:
+        work_inc = 0
+    
     net_cash_flow = work_inc + total_annual_dividend - annual_expenses - annual_loan_interest - basic_tax
     cash_pool += net_cash_flow
     
-    if cash_pool < 0 and bankruptcy_age is None:
+    if cash_pool < 0 and bankruptcy_age == -1:
         bankruptcy_age = age
         
     estate_total = max(0, cash_pool) + stock_market_value + total_re_tax
     net_estate = estate_total - 13330000
-    estate_tax = 0
+    
+    estate_tax = 0.0
     if net_estate > 0:
-        if net_estate <= 50000000: estate_tax = net_estate * 0.10
-        elif net_estate <= 100000000: estate_tax = net_estate * 0.15 - 250000
-        else: estate_tax = net_estate * 0.20 - 5250000
+        if net_estate <= 50000000:
+            estate_tax = net_estate * 0.10
+        elif net_estate <= 100000000:
+            estate_tax = net_estate * 0.15 - 250000
+        else:
+            estate_tax = net_estate * 0.20 - 5250000
         
     if estate_tax > max_estate_tax:
         max_estate_tax = estate_tax
@@ -217,12 +226,17 @@ with tab2:
     
     st.markdown("<div class='wealth-card'>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#e0a96d; margin-top:0;'>💡 家族財富傳承精算建議</h4>", unsafe_allow_html=True)
+    
     col_a, col_b = st.columns(2)
     with col_a:
-        if bankruptcy_age:
-            st.markdown(f"<span style='color:#ff4b4b;'>⚠️ <b>現金流安全警訊</b>：資產池預計於 <b>{bankruptcy_age} 歲</b> 現金流告急。</span>", unsafe_allow_html=True)
+        if bankruptcy_age != -1:
+            st.warning(f"⚠️ 現金流安全警訊：資產池預計於 {bankruptcy_age} 歲 現金流告急。")
         else:
-            st.markdown("<span style='color:#00cc66;'>✅ <b>終身現金流檢測</b>：現金流安全無虞，資產能完美延續至120歲。</span>", unsafe_allow_html=True)
+            st.success("✅ 終身現金流檢測：現金流安全無虞，資產能完美延續至120歲。")
+            
         if total_annual_dividend >= 7500000:
-            st.markdown("<br><span style='color:#ffaa00;'>⚠️ <b>最低稅負制觸發</b>：年度海外總配息高於 750 萬，將產生 20% 基本所得稅額風險。</span>", unsafe_allow_html=True)
+            st.warning("⚠️ 最低稅負制觸發：年度海外總配息高於 750 萬，將產生 20% 基本所得稅額風險。")
         else:
+            st.success("✅ 租稅合規檢測：年度海外總配息未達補稅紅線。")
+            
+    with col_b:
