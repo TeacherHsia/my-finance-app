@@ -86,7 +86,7 @@ with tab1:
     real_estate_list = []
     for i in range(st.session_state.re_count):
         st.markdown(f"<div class='wealth-card'>", unsafe_allow_html=True)
-        col_re1, col_re2, col_re3 = st.columns([2, 2, 3])
+        col_re1, col_re2, col_re3 = st.columns(3)
         with col_re1:
             re_name = st.text_input(f"物業 {i+1} 名稱 / 地段描述", value="信義路大樓" if i==0 else f"自訂不動產物業 {i+1}", key=f"re_name_{i}")
             re_market = st.number_input(f"估計市值 (元)", value=50000000 if i==0 else 10000000, key=f"re_market_{i}")
@@ -105,7 +105,6 @@ with tab1:
         
     if st.button("➕ 新增一筆房地產物業"):
         st.session_state.re_count += 1
-        st.状况 = "Rerun"
         st.rerun()
 
     # --- 2. 股票部位動態新增區塊 ---
@@ -176,13 +175,14 @@ max_estate_tax_age = current_age
 for age in range(current_age, 121):
     # 動態計算所有基金與增貸投入的總配息
     total_fund_pool = base_fund_market_value + total_leverage_cash
-    # 這裡採用平均年化配息率或各筆基金權重加總計算
     total_annual_dividend = sum([f['market_value'] * f['dividend_rate'] for f in fund_list])
     if total_leverage_cash > 0 and base_fund_market_value > 0:
         avg_div_rate = total_annual_dividend / base_fund_market_value
         total_annual_dividend += total_leverage_cash * avg_div_rate
     elif total_leverage_cash > 0:
-        total_annual_dividend += total_leverage_cash * 0.06 # 若無基本基金，增貸預設以6%配息算
+        total_annual_dividend += total_leverage_cash * 0.06
+    else:
+        total_annual_dividend += 0
         
     basic_tax = 0
     if total_annual_dividend >= 1000000 and total_annual_dividend > 7500000:
